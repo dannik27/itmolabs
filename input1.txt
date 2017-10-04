@@ -1,2 +1,3 @@
 samples/binary
 samples
+F:\VMs/CentOS7.vdi

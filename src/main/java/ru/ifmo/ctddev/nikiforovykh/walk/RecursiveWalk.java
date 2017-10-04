@@ -1,18 +1,24 @@
+package ru.ifmo.ctddev.nikiforovykh.walk;
+
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-public class Laba1b {
+public class RecursiveWalk {
 
     ArrayList<String> out;
 
     public  static void main(String[] args){
-        new Laba1b(args[0], args[1]);
+
+        try {
+            new RecursiveWalk(args[0], args[1]);
+        }catch (ArrayIndexOutOfBoundsException ex){
+            System.out.println("Неверное кол-во аргументов");
+        }
     }
 
 
 
-    public Laba1b(String inputFile, String outputFile){
+    public RecursiveWalk(String inputFile, String outputFile){
 
         out = new ArrayList<>();
 
@@ -32,7 +38,7 @@ public class Laba1b {
             }
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Не найден входной файл");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,17 +48,19 @@ public class Laba1b {
     private void checkPath(String path){
 
         File file = new File(path);
-        if ((file.exists())&&(file.isDirectory())){
+        if ((file.exists())&&(file.isDirectory())&&(file.listFiles() != null)){
             for(File fileIn : file.listFiles()){
                 checkPath(fileIn.getPath());
-
             }
         }else{
 
-            try(FileInputStream f = new FileInputStream(path);){
+
+            try(FileInputStream f = new FileInputStream(path)){
+
                 byte[] fileInArray = new byte[(int) file.length()];
                 f.read(fileInArray);
-                out.add(Integer.toHexString(hash(fileInArray)) + " " + path);
+                out.add(Walk.hash(fileInArray) + " " + path);
+
             }catch (FileNotFoundException ex){
                 out.add("00000000 " + path);
             } catch (IOException e) {
@@ -62,14 +70,6 @@ public class Laba1b {
         }
 
 
-    }
-
-    private int hash(final byte[] bytes) {
-        int h = 0x811c9dc5;
-        for (final byte b : bytes) {
-            h = (h * 0x01000193) ^ (b & 0xff);
-        }
-        return h;
     }
 
 

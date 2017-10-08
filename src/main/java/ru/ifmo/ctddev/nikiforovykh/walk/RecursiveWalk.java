@@ -22,9 +22,9 @@ public class RecursiveWalk {
 
         out = new ArrayList<>();
 
-        try (
-                BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-                BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+        try(
+            BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
         ){
 
             String path;
@@ -53,13 +53,25 @@ public class RecursiveWalk {
                 checkPath(fileIn.getPath());
             }
         }else{
+            try(InputStream f = new BufferedInputStream(new FileInputStream(path))){
 
+                byte[] fileInArray;
+                int hash = Walk.HASH_START;
+                int bufferSize = 1048576;
 
-            try(FileInputStream f = new FileInputStream(path)){
+                while(f.available() > 0){
 
-                byte[] fileInArray = new byte[(int) file.length()];
-                f.read(fileInArray);
-                out.add(Walk.hash(fileInArray) + " " + path);
+                    if(f.available() > bufferSize){
+                        fileInArray = new byte[bufferSize];
+                    }else{
+                        fileInArray = new byte[f.available()];
+                    }
+
+                    f.read(fileInArray, 0 , fileInArray.length);
+                    hash = Walk.incrementHash(hash, fileInArray);
+                }
+
+                out.add(Walk.hashToHex(hash) + " " + path);
 
             }catch (FileNotFoundException ex){
                 out.add("00000000 " + path);

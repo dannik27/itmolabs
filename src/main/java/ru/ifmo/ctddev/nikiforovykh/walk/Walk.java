@@ -4,7 +4,7 @@ import java.io.*;
 
 public class Walk {
 
-
+    static final int HASH_START = 0x811c9dc5;
 
     public  static void main(String[] args){
 
@@ -69,9 +69,19 @@ public class Walk {
         for (final byte b : bytes) {
             h = (h * 0x01000193) ^ (b & 0xff);
         }
-        StringBuffer hh = new StringBuffer(Integer.toHexString(h));
-        //StringBuffer hh = new StringBuffer("123456");
-        //System.out.println("hash->" + hh.toString());
+
+        return hashToHex(h);
+    }
+
+    public static int incrementHash(int hash, final byte[] bytes){
+        for (final byte b : bytes) {
+            hash = (hash * 0x01000193) ^ (b & 0xff);
+        }
+        return hash;
+    }
+
+    public static String  hashToHex(int hash){
+        StringBuffer hh = new StringBuffer(Integer.toHexString(hash));
         int len = hh.length();
         for(int i=0;i<8 - len;i++){
             hh.insert(0, '0');

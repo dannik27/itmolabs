@@ -1,6 +1,8 @@
 package ru.ifmo.ctddev.nikiforovykh.walk;
 
 import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
 public class RecursiveWalk {
@@ -29,7 +31,32 @@ public class RecursiveWalk {
 
             String path;
             while((path = reader.readLine())!=null){
-               checkPath(path);
+               //checkPath(path);
+
+                if( new File(path).exists()){
+
+                    Files.walkFileTree(Paths.get(path), new SimpleFileVisitor<Path>(){
+
+                        @Override
+                        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+
+                            out.add( getFileHash(file.toString()) + " " + file.toString());
+                            return super.visitFile(file, attrs);
+
+                        }
+
+                        @Override
+                        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+
+                            out.add("00000000 " + file.toString());
+                            return FileVisitResult.SKIP_SUBTREE;
+                        }
+                    });
+                }else{
+                    out.add("00000000 " + path);
+                }
+
+
             }
 
             for (String line : out){
@@ -45,41 +72,37 @@ public class RecursiveWalk {
     }
 
 
-    private void checkPath(String path){
+    private String getFileHash(String path){
 
-        File file = new File(path);
-        if ((file.exists())&&(file.isDirectory())&&(file.listFiles() != null)){
-            for(File fileIn : file.listFiles()){
-                checkPath(fileIn.getPath());
-            }
-        }else{
-            try(InputStream f = new BufferedInputStream(new FileInputStream(path))){
+        String result = "";
 
-                byte[] fileInArray;
-                int hash = Walk.HASH_START;
-                int bufferSize = 1048576;
+        try(InputStream f = new BufferedInputStream(new FileInputStream(path))){
 
-                while(f.available() > 0){
+            byte[] fileInArray;
+            int hash = Walk.HASH_START;
+            int bufferSize = 1048576;
 
-                    if(f.available() > bufferSize){
-                        fileInArray = new byte[bufferSize];
-                    }else{
-                        fileInArray = new byte[f.available()];
-                    }
+            while(f.available() > 0){
 
-                    f.read(fileInArray, 0 , fileInArray.length);
-                    hash = Walk.incrementHash(hash, fileInArray);
+                if(f.available() > bufferSize){
+                    fileInArray = new byte[bufferSize];
+                }else{
+                    fileInArray = new byte[f.available()];
                 }
 
-                out.add(Walk.hashToHex(hash) + " " + path);
-
-            }catch (FileNotFoundException ex){
-                out.add("00000000 " + path);
-            } catch (IOException e) {
-                e.printStackTrace();
+                f.read(fileInArray, 0 , fileInArray.length);
+                hash = Walk.incrementHash(hash, fileInArray);
             }
 
+            result = Walk.hashToHex(hash);
+
+        }catch (FileNotFoundException ex){
+            result = "00000000";
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        return result;
 
 
     }
